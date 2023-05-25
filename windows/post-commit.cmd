@@ -27,13 +27,13 @@ setlocal
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Get subversion arguments
-set repos=%~1
-set rev=%2
+set "repos=%~1"
+set "rev=%2"
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Set some variables
-set tos=%repos%\hooks\%~n0.tos.txt
-set reposname=%~nx1
+set "tos=%repos%\hooks\%~n0.tos.txt"
+set "reposname=%~nx1"
 set svnlookparam="%repos%" --revision %rev%
 
 if not exist "%tos%" goto :END
