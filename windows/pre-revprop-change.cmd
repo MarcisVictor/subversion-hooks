@@ -15,6 +15,7 @@
 :: This is a pre-revprop-change hook for subversion that allows editing 
 :: commit messages of previous commits. In addition, it makes sure that
 :: whatever new message is of a certain length.
+:: The Length is configurable (mincharlimit).
 ::
 :: You can derive a post-revprop-change hook from it to backup the old 
 :: 'snv:log' somewhere if you wish to keep its history of changes.
@@ -28,6 +29,7 @@ setlocal
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Get subversion arguments
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 set "repos=%~1"
 set "rev=%2"
 set "user=%3"
@@ -36,6 +38,7 @@ set "action=%5"
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Set some variables
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 set /a mincharlimit=10
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -55,19 +58,19 @@ if /I not '%action%'=='M' goto ERROR_ACTION
 set /a NumChar=0
 
 for /f "tokens=*" %%g in ('find /V ""') do (
- set LogMsg=%%g
- echo %LogMsg%
- setlocal disableDelayedExpansion
- set NumChar=0
- for /f "delims=:" %%N in ('"(cmd /v:on /c echo(!LogMsg!&echo()|findstr /o ^^"') do set /a "NumChar=%%N-3"
- setlocal enableDelayedExpansion
+	set LogMsg=%%g
+	setlocal disableDelayedExpansion
+	for /f "delims=:" %%N in ('"(cmd /v:on /c echo(!LogMsg!&echo()|findstr /o ^^"') do set /a "NumChar+=%%N"
+	::Remove extra characters that don't count from the lookup
+	set /a "NumChar+=-3"
+	setlocal enableDelayedExpansion
 )
 
-if %NumChar% leq %mincharlimit% goto ERROR_EMPTY
+if %NumChar% lss %mincharlimit% goto ERROR_MSG_LENGTH
 
 goto :eof
 
-:ERROR_EMPTY
+:ERROR_MSG_LENGTH
 echo Log messages must be at least %mincharlimit% characters (Current Length: %NumChar%). >&2
 goto ERROR_EXIT
 
